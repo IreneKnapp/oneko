@@ -68,6 +68,7 @@ char    *Foreground = NULL;             /*   foreground */
 char    *Background = NULL;             /*   background */
 long    IntervalTime = 0L;              /*   time       */
 double  NekoSpeed = (double)0;          /*   speed      */
+int     ScaleFactor = NOTDEFINED;       /*   scale      */
 int     IdleSpace = 0;                  /*   idle       */
 int     NekoMoyou = NOTDEFINED;         /*   tora       */
 int     NoShape = NOTDEFINED;           /*   noshape    */
@@ -269,6 +270,53 @@ Animation       AnimationPattern[][2] =
 static void NullFunction();
 
 /*
+ *      Scales the bitmap, returning a freshly malloc()'d copy which it is the
+ *      caller's responsibility to free.
+ */
+
+char*
+ScaleBitmap(char* inputBitmap)
+{
+    int scaledBitmapWidth = BITMAP_WIDTH * ScaleFactor;
+    int scaledBitmapHeight = BITMAP_HEIGHT * ScaleFactor;
+    int scaledBitmapSize = (scaledBitmapWidth / 8) * scaledBitmapHeight;
+    char* result = malloc(scaledBitmapSize);
+
+    for (int i = 0; i < scaledBitmapSize; i++) {
+      result[i] = 0x00;
+    }
+
+    for (int srcY = 0; srcY < BITMAP_HEIGHT; srcY++) {
+      for (int srcX = 0; srcX < BITMAP_WIDTH; srcX++) {
+        int srcByteOffset = (srcX / 8) + (srcY * BITMAP_WIDTH / 8);
+        int srcBitOffset = (srcX % 8);
+        char bit = inputBitmap[srcByteOffset] >> srcBitOffset & 0x01;
+
+        if (bit != 0) {
+          for (int ySub = 0; ySub < ScaleFactor; ySub++) {
+            int dstY = srcY * ScaleFactor + ySub;
+
+            for (int xSub = 0; xSub < ScaleFactor; xSub += 8) {
+              int dstX = srcX * ScaleFactor + xSub;
+              int dstByteOffset = (dstX / 8) + (dstY * scaledBitmapWidth / 8);
+              int dstBitCount = ScaleFactor - xSub;
+              if (dstBitCount > 8) {
+                dstBitCount = 8;
+              }
+              int dstBitOffset = (dstX % 8);
+              char dstBitMask = ((1 << dstBitCount) - 1) << dstBitOffset;
+
+              result[dstByteOffset] |= dstBitMask;
+            }
+          }
+        }
+      }
+    }
+
+    return result;
+}
+
+/*
  *      ビットマップデータ・GC 初期化
  */
 
@@ -289,20 +337,30 @@ InitBitmapAndGCs()
          BitmapGCDataTablePtr->GCCreatePtr != NULL;
          BitmapGCDataTablePtr++) {
 
+        char* scaledPixelPattern =
+            ScaleBitmap(BitmapGCDataTablePtr->PixelPattern[NekoMoyou]);
+
         *(BitmapGCDataTablePtr->BitmapCreatePtr)
             = XCreatePixmapFromBitmapData(theDisplay, theRoot,
-                BitmapGCDataTablePtr->PixelPattern[NekoMoyou],
-                BITMAP_WIDTH, BITMAP_HEIGHT,
+                scaledPixelPattern,
+                BITMAP_WIDTH * ScaleFactor, BITMAP_HEIGHT * ScaleFactor,
                 theForegroundColor.pixel,
                 theBackgroundColor.pixel,
                 DefaultDepth(theDisplay, theScreen));
 
+        free(scaledPixelPattern);
+
         theGCValues.tile = *(BitmapGCDataTablePtr->BitmapCreatePtr);
+
+        char* scaledMaskPattern =
+            ScaleBitmap(BitmapGCDataTablePtr->MaskPattern[NekoMoyou]);
 
         *(BitmapGCDataTablePtr->BitmapMasksPtr)
             = XCreateBitmapFromData(theDisplay, theRoot,
-                BitmapGCDataTablePtr->MaskPattern[NekoMoyou],
-                BITMAP_WIDTH, BITMAP_HEIGHT);
+                scaledMaskPattern,
+                BITMAP_WIDTH * ScaleFactor, BITMAP_HEIGHT * ScaleFactor);
+
+        free(scaledMaskPattern);
 
         *(BitmapGCDataTablePtr->GCCreatePtr)
             = XCreateGC(theDisplay, theWindow,
@@ -368,6 +426,14 @@ GetResources()
     }
   }
 
+  if (ScaleFactor == NOTDEFINED) {
+    if ((resource = NekoGetDefault("scale")) != NULL) {
+      if (num = atoi(resource)) {
+        ScaleFactor = num;
+      }
+    }
+  }
+
   if (IdleSpace == 0) {
     if ((resource = NekoGetDefault("idle")) != NULL) {
       if (num = atoi(resource)) {
@@ -408,8 +474,12 @@ GetResources()
   if (IntervalTime == 0) {
     IntervalTime = AnimalDefaultsDataTable[NekoMoyou].time;
   }
+  if (ScaleFactor == NOTDEFINED) {
+    ScaleFactor = 1;
+  }
   if (NekoSpeed == (double)0) {
-    NekoSpeed = (double)(AnimalDefaultsDataTable[NekoMoyou].speed);
+    NekoSpeed = (double)(AnimalDefaultsDataTable[NekoMoyou].speed)
+      * ScaleFactor;
   }
   if (IdleSpace == 0) {
     IdleSpace = AnimalDefaultsDataTable[NekoMoyou].idle;
@@ -690,7 +760,7 @@ InitScreen(DisplayName)
       CWOverrideRedirect;
 
   theWindow = XCreateWindow(theDisplay, theRoot, 0, 0,
-                            BITMAP_WIDTH, BITMAP_HEIGHT,
+                            BITMAP_WIDTH * ScaleFactor, BITMAP_HEIGHT * ScaleFactor,
                             0, theDepth, InputOutput, CopyFromParent,
                             theWindowMask, &theWindowAttributes);
 
@@ -815,7 +885,9 @@ DrawNeko(x, y, DrawAnime)
         DontMapped = 0;
       }
       XFillRectangle(theDisplay, theWindow, DrawGC,
-                     0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+                     0, 0,
+                     BITMAP_WIDTH * ScaleFactor,
+                     BITMAP_HEIGHT * ScaleFactor);
     }
 
     XFlush(theDisplay);
@@ -835,7 +907,9 @@ void
 RedrawNeko()
 {
   XFillRectangle(theDisplay, theWindow, NekoLastGC,
-                 0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+                 0, 0,
+                 BITMAP_WIDTH * ScaleFactor,
+                 BITMAP_HEIGHT * ScaleFactor);
 
   XFlush(theDisplay);
 }
@@ -915,15 +989,15 @@ IsWindowOver()
     if (NekoY <= 0) {
         NekoY = 0;
         ReturnValue = True;
-    } else if (NekoY >= WindowHeight - BITMAP_HEIGHT) {
-        NekoY = WindowHeight - BITMAP_HEIGHT;
+    } else if (NekoY >= WindowHeight - BITMAP_HEIGHT * ScaleFactor) {
+        NekoY = WindowHeight - BITMAP_HEIGHT * ScaleFactor;
         ReturnValue = True;
     }
     if (NekoX <= 0) {
         NekoX = 0;
         ReturnValue = True;
-    } else if (NekoX >= WindowWidth - BITMAP_WIDTH) {
-        NekoX = WindowWidth - BITMAP_WIDTH;
+    } else if (NekoX >= WindowWidth - BITMAP_WIDTH * ScaleFactor) {
+        NekoX = WindowWidth - BITMAP_WIDTH * ScaleFactor;
         ReturnValue = True;
     }
 
@@ -1038,34 +1112,34 @@ CalcDxDy()
           && theTargetAttributes.y < (int)WindowHeight
           && theTargetAttributes.map_state == IsViewable) {
         if (ToFocus) {
-          if (MouseX < theTargetAttributes.x+BITMAP_WIDTH/2)
+          if (MouseX < theTargetAttributes.x+BITMAP_WIDTH*ScaleFactor/2)
             LargeX = (double)(theTargetAttributes.x + XOffset - NekoX);
           else if (MouseX > theTargetAttributes.x+theTargetAttributes.width
-                   -BITMAP_WIDTH/2)
+                   -BITMAP_WIDTH*ScaleFactor/2)
             LargeX = (double)(theTargetAttributes.x + theTargetAttributes.width
-                              + XOffset - NekoX - BITMAP_WIDTH);
+                              + XOffset - NekoX - BITMAP_WIDTH * ScaleFactor);
           else 
-            LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH / 2);
+            LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH * ScaleFactor / 2);
 
           LargeY = (double)(theTargetAttributes.y
-                            + YOffset - NekoY - BITMAP_HEIGHT);
+                            + YOffset - NekoY - BITMAP_HEIGHT * ScaleFactor);
         }
         else {
           MouseX = theTargetAttributes.x 
             + theTargetAttributes.width / 2 + XOffset;
           MouseY = theTargetAttributes.y + YOffset;
-          LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH / 2);
-          LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT);    
+          LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH * ScaleFactor / 2);
+          LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT * ScaleFactor);
         }
       }
       else {
-        LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH / 2);
-        LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT);
+        LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH * ScaleFactor/ 2);
+        LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT * ScaleFactor);
       }
     }
     else {
-      LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH / 2);
-      LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT);
+      LargeX = (double)(MouseX - NekoX - BITMAP_WIDTH * ScaleFactor / 2);
+      LargeY = (double)(MouseY - NekoY - BITMAP_HEIGHT * ScaleFactor);
     }
 
     DoubleLength = LargeX * LargeX + LargeY * LargeY;
@@ -1115,14 +1189,16 @@ NekoThinkDraw()
         }
         if (NekoMoveDx < 0 && NekoX <= 0) {
             SetNekoState(NEKO_L_TOGI);
-        } else if (NekoMoveDx > 0 && NekoX >= WindowWidth - BITMAP_WIDTH) {
+        } else if (NekoMoveDx > 0
+                   && NekoX >= WindowWidth - BITMAP_WIDTH * ScaleFactor) {
             SetNekoState(NEKO_R_TOGI);
         } else if ((NekoMoveDy < 0 && NekoY <= 0)
                    || (ToFocus && theTarget != None && NekoY > MouseY)){
             SetNekoState(NEKO_U_TOGI);
-        } else if ((NekoMoveDy > 0 && NekoY >= WindowHeight - BITMAP_HEIGHT)
+        } else if ((NekoMoveDy > 0
+                    && NekoY >= WindowHeight - BITMAP_HEIGHT * ScaleFactor)
                    || (ToFocus && theTarget != None 
-                       &&  NekoY < MouseY - BITMAP_HEIGHT)){
+                       &&  NekoY < MouseY - BITMAP_HEIGHT * ScaleFactor)){
             SetNekoState(NEKO_D_TOGI);
         } else {
             SetNekoState(NEKO_JARE);
@@ -1298,8 +1374,8 @@ ProcessNeko()
 
   /* 猫の初期化 */
 
-  NekoX = (WindowWidth - BITMAP_WIDTH / 2) / 2;
-  NekoY = (WindowHeight - BITMAP_HEIGHT / 2) / 2;
+  NekoX = (WindowWidth - BITMAP_WIDTH * ScaleFactor / 2) / 2;
+  NekoY = (WindowHeight - BITMAP_HEIGHT * ScaleFactor / 2) / 2;
 
   NekoLastX = NekoX;
   NekoLastY = NekoY;
@@ -1435,6 +1511,15 @@ GetArguments(argc, argv, theDisplayName)
         NekoSpeed = atof(argv[ArgCounter]);
       } else {
         fprintf(stderr, "%s: -speed option error.\n", ProgramName);
+        exit(1);
+      }
+    }
+    else if (strcmp(argv[ArgCounter], "-scale") == 0) {
+      ArgCounter++;
+      if (ArgCounter < argc) {
+        ScaleFactor = atoi(argv[ArgCounter]);
+      } else {
+        fprintf(stderr, "%s: -scale option error.\n", ProgramName);
         exit(1);
       }
     }

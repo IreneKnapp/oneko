@@ -1,0 +1,107 @@
+		oneko - Neko runs over the windows.
+		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		A supplement to README for patchlevel 1.2.sakura.5
+		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+				Original program "xneko" written by
+							Masayuki Koba
+				Modified to program "oneko" by
+							Tatsuya Kato
+				Modified furthermore by
+							John Lerchey
+							Eric Anderson
+							Toshihiro Kanda
+							Kiichiroh Mukose
+				This document written by
+					Kiichiroh Mukose
+					(mukose@hbar.mp.es.osaka-u.ac.jp)
+
+
+Kato 氏による oneko も、多くの人たちの手によってさらに成長しています。
+そこで README への補足としてこのドキュメントを書きます。まず README お
+よび README-NEW をお読みください。
+
+＜バージョンアップによる機能拡張＞
+
+◎ 猫を犬や BSD デーモンにする機能が追加されました。また、漫画『カード
+   キャプターさくら』（CLAMP, 講談社）のキャラクター、木之本桜や大道寺
+   知世にもなります。実行時にそれぞれ
+
+   % oneko -dog
+   % oneko -bsd_daemon もしくは -bsd
+   % oneko -sakura
+   % oneko -tomoyo
+
+   とするとビットマップが変わります。
+
+   BSD デーモンは Marshall Kirk McKusick 氏の著作物です。このプログラ
+   ムは McKusick 氏の承諾を得てこれを使用しています。
+
+   『カードキャプターさくら』およびそのキャラクターは CLAMP の著作物で
+   す。ただしそのキャラクターは同人誌等における利用が容認されています。 
+   CLAMP 学園電子分校（http://www.clamp.f-2.co.jp/）をご参照ください。
+
+◎ コンパイラに gcc を使うと動かない問題は、現在では見られなくなったよ
+   うです。Imakefile の CC=cc はコメントアウトされました。
+
+◎ 猫のマウスへの相対位置を指定できるようになりました。-position オプ
+   ションをお使いください。
+
+◎ ウィンドウ名を指定できるようになりました。-name オプションをお使い
+   ください。
+
+◎ マウス以外に任意のウィンドウを追いかけることができるようになりまし
+   た。すでに走っている他の oneko を目標にすることもできます。
+   -towindow オプションもしくは -toname オプションをお使いください。
+
+   % oneko -name tama
+   % oneko -dog -toname tama
+
+   とすると、鼠を猫が追いかけ、その猫を犬が追いかけます。
+
+◎ フォーカスウィンドウの上部を走らせることができるようになりました。
+   -tofocus オプションをお使いください。
+
+＜新しい機能の使用方法＞
+
+-dog		猫に代わり犬が走ります。
+
+-bsd_daemon	猫に代わり 4.3BSD デーモンが走ります。
+
+-bsd		-bsd_daemon に同じ。
+
+-sakura		猫に代わり木之本桜が走ります。
+
+-tomoyo		猫に代わり大道寺知世が走ります。
+
+-name <name>	猫のウィンドウ名を指定します。
+
+-towindow	起動後にマウスで選択されたウィンドウをマウスの代わりに
+		追いかけます。
+
+-toname <name>	指定された名前のウィンドウをマウスの代わりに追いかけま
+		す。
+
+-tofocus	猫はフォーカスウィンドウに向かって走り、そしてその上部
+		を走ります。
+
+-position <geometry>
+		猫のマウスとの相対位置を調節します。デフォルト値からの
+		差で指定します。
+
+README に挙げられている従来のオプションも全て有効です。
+
+各ビットマップごとに設定されているデフォルト値は
+
+		time	speed	idle	position
+default neko	125000	13	6	+0+0
+tora		125000	16	6	+0+0
+dog		125000	10	6	+0+0
+bsd_daemon	300000	16	6	+22+20
+sakura		125000	13	6	+0+0
+tomoyo		125000	10	6	+32+32
+
+なお、猫にキー入力を渡すことが可能な場合には、Meta (Alt) + q によって
+終了させることもできます。
+
+問題や不明な点がございましたら mukose@hbar.mp.es.osaka-u.ac.jp まで。

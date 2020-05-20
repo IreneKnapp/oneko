@@ -1,0 +1,146 @@
+.TH ONEKO 6
+.SH NAME oneko
+The program oneko creates a cute cat chasing around your mouse cursor.
+.SH SYNOPSIS
+.B oneko
+[\fB-help\fP] [\fB-tora\fP]
+[\fB-dog\fP] [\fB-bsd_daemon\fP] [\fB-bsd\fP]
+[\fB-sakura\fP] [\fB-tomoyo\fP]
+[\fB-time\fP \fIn\fP] [\fB-speed\fP \fIn\fP] [\fB-idle\fP \fIn\fP]
+[\fB-name\fP \fIname\fP] [\fB-towindow\fP] [\fB-toname\fP \fIname\fP]
+[\fB-tofocus\fP]
+[\fB-position\fP \fIgeometry\fP]
+[\fB-rv\fP] [\fB-noshape\fP] [\fB-fg\fP] [\fB-bg\fP]
+.SH DESCRIPTION
+.I oneko
+changes your mouse cursor into mouse and creates a little cute cat and the
+cat start chasing around your mouse cursor.  If the cat catchup the ``mouse'',
+start sleeping.
+.SS Options
+.TP
+.B -help
+Prints help message on usage.
+.TP
+.B -tora
+Make cat into "tora-neko".  "Tora-neko" means cat wite tiger-like stripe.
+I don't know how to say it in English.
+.TP
+.B -dog
+Runs a dog instead of a cat.
+.TP
+.B -bsd_daemon
+Runs a 4.3BSD daemon instead of a cat.
+.TP
+.B -bsd
+Same as
+.B -bsd_daemon.
+.TP
+.B -sakura
+Runs Sakura Kinomoto instead of a cat.
+.TP
+.B -tomoyo
+Runs Tomoyo Daidouji instead of a cat.
+.TP
+.BI \-time " interval"
+Sets interval timer which determine intervals for cat animation.
+Default value is 125000 and unit is micro-second.  Smaller value makes cat
+run faster.
+.TP
+.BI \-speed " distance"
+Specify the distance where cat jumps at one move in dot resolution.
+Default is 16.
+.TP
+.BI \-idle " speed"
+Specify the threshold of the speed which ``mouse'' running away
+to wake cat up.
+.TP
+.BI \-name " name"
+Specify the window name of cat.
+.TP
+.B -towindow
+When
+.I oneko
+starts with this option, you must select a window by cursor.
+Then cat appears and starts chasing the window instead of mouse.
+You can select another running
+.I oneko
+as the target window.
+If root window is selected, cat chases mouse as usually.
+When the target window is not in sight and not closed, cat chases
+mouse as usually.
+If the target window is closed, this program exit.
+.TP
+.BI \-toname " name"
+Specify the window name of target to make cat chase it instead of
+mouse.
+You can specify another running
+.I oneko
+as the target window.
+When the target window is not in sight and not closed, cat chases
+mouse as usually.
+If the target window is closed, this program exit.
+.TP
+.B -tofocus
+Makes cat run to and on top of focus window.
+When focus window is not in sight, cat chases mouse as usually.
+.TP
+.BI \-position " geometry"
+Specify X and Y offsets in pixels to adjust position of cat relative
+to mouse pointer.
+.TP
+.B -rv
+Reverse background color and foreground color.
+.TP
+.B -noshape
+Don't use SHAPE extension.
+.TP
+.BI \-fg " color"
+Foreground color.
+.TP
+.BI \-bg " color"
+Background color.
+.SS Resources
+Application name is "neko"(or "tora") and class name is "Oneko".
+.TP
+.B tora
+Set ``True'' if you want "tora-neko".
+.TP
+.B time
+Sets interval timer in micro-second.
+.TP
+.B speed
+Sets distance to jump in pixel.
+.TP
+.B idle
+Sets speed threshold to wake cat up when ``mouse'' running away.
+.TP
+.B noshape
+Set ``True'' if you don't want to use SHAPE extension.
+.TP
+.B reverse
+Set ``True'' if you want to switch foreground and background color.
+.TP
+.B foreground
+Foreground color.
+.TP
+.B background
+Background color.
+.SH Notes
+While this program uses XGetDefault, be sure to use "neko.resouce" form.
+If you run this program as "tora", by hard of soft link, the \fB-tora\fP
+option is enabled by default.
+.PP
+BSD Daemon Copyright 1988 by Marshall Kirk McKusick. All Rights Reserved.
+.PP
+Sakura Kinomoto and Tomoyo Daidouji are characters in a comic strip
+"CARDCAPTOR SAKURA" (CLAMP, Kodansha), with the sanction indicated in
+CLAMP SCHOOL WEB CAMPUS (http://www.clamp.f-2.co.jp/).
+.SH AUTHOR
+Original
+.I xneko
+is written by Masayuki Koba and modified to 
+.I oneko
+by Tatsuya Kato, and modified furthermore by John Lerchey, Eric
+Anderson, Toshihiro Kanda and Kiichiroh Mukose.
+.SH MAINTAINER
+Send questions or problems to mukose@hbar.mp.es.osaka-u.ac.jp

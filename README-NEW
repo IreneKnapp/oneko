@@ -1,3 +1,15 @@
+patchlevel "1.2.hanami.6"
+Modified to support -scale. I found this to be a necessity for modern
+displays.
+
+By Irene Knapp <ireneista@gmail.com>.
+
+All of my changes are released as public domain. I also understand the
+original software to be public domain per the README's reference to "PDS",
+apart from the below note about the BSD Daemon pixel art.
+
+(original README-NEW follows)
+-----------------------------------------------------------------------
 patchlevel "1.2.sakura.5"
 Added bitmaps of Sakura Kinomoto and Tomoyo Daidouji
 who are characters in a comic strip "CARDCAPTOR SAKURA" (CLAMP, Kodansha),

@@ -46,9 +46,15 @@ Sets interval timer which determine intervals for cat animation.
 Default value is 125000 and unit is micro-second.  Smaller value makes cat
 run faster.
 .TP
+.BI \-scale " factor"
+Sets scale factor which zooms up the bitmaps by the nearest-neighbor
+algorithm. Only integer values are supported. Default value is 1.
+.TP
 .BI \-speed " distance"
 Specify the distance where cat jumps at one move in dot resolution.
-Default is 16.
+Default is 16.  If you don't set this explicitly, it is multiplied by the
+scale factor.  If you do set it explicitly, make sure to take the scale
+factor into account.
 .TP
 .BI \-idle " speed"
 Specify the threshold of the speed which ``mouse'' running away

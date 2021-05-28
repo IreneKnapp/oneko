@@ -1444,6 +1444,7 @@ char    *message[] = {
 "-fg <color>            : Foreground color",
 "-bg <color>            : Background color",
 "-speed <dots>",
+"-scale <scale>",
 "-time <microseconds>",
 "-idle <dots>",
 "-name <name>           : set window name of neko.",

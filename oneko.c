@@ -270,6 +270,19 @@ Animation       AnimationPattern[][2] =
 static void NullFunction();
 
 /*
+ * Enable click-through for specified window
+ */
+
+#ifdef SHAPE
+void SetWindowClickThrough(Display *dpy, Window win) {
+    XRectangle rect;
+    XserverRegion region = XFixesCreateRegion(dpy, &rect, 1);
+    XFixesSetWindowShapeRegion(dpy, win, ShapeInput, 0, 0, region);
+    XFixesDestroyRegion(dpy, region);
+}
+#endif
+
+/*
  *      Scales the bitmap, returning a freshly malloc()'d copy which it is the
  *      caller's responsibility to free.
  */
@@ -763,6 +776,7 @@ InitScreen(DisplayName)
                             BITMAP_WIDTH * ScaleFactor, BITMAP_HEIGHT * ScaleFactor,
                             0, theDepth, InputOutput, CopyFromParent,
                             theWindowMask, &theWindowAttributes);
+  SetWindowClickThrough(theDisplay, theWindow);
 
   if (WindowName == NULL) WindowName = ProgramName;
   XStoreName(theDisplay, theWindow, WindowName);
